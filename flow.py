@@ -1,7 +1,7 @@
 from common import *
 from helpers import *   
 from config import *
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/Flow_Market_Data/data/'
+directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data') + '/'
 
 plt.close()
 

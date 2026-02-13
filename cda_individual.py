@@ -2,7 +2,7 @@ from helpers import *
 from common import *
 from config import *
 
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/'
+directory = os.path.dirname(os.path.abspath(__file__)) + '/'
 plt.close()
 
 
@@ -23,7 +23,7 @@ for g in range(1, num_cda + 1):
     name = 'group' + str(g)
     group_mkt = []
     for r in range(1, num_periods - prac_periods + 1): 
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
+        path = directory + 'data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
         rnd = pd.read_json(path)
         # rnd['clearing_price'].fillna(method='bfill', inplace=True)
         # rnd.fillna(0, inplace=True)
@@ -54,7 +54,7 @@ for g in range(1, num_cda + 1):
 
         visited = set()
         
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_participant.json'.format(g, r + prac_periods)
+        path = directory + 'data/cda{}/{}/1_participant.json'.format(g, r + prac_periods)
         rnd = pd.read_json(path)
         rnd = pd.merge(rnd, group_mkt[r - 1], how='left', on='timestamp') # attache clearing price and clearing rate 
         rnd = rnd[(rnd['before_transaction'] == False)].reset_index(drop=True)

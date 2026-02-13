@@ -2,7 +2,7 @@ from helpers import *
 from common import *
 from config import *
 
-directory = '/Users/YilinLi/Documents/UCSC/Flow Data/'
+directory = os.path.dirname(os.path.abspath(__file__)) + '/'
 plt.close()
 
 def main():
@@ -60,7 +60,7 @@ def get_best_bids_asks(orders):
 for g in range(1, num_cda + 1):
     group_mkt = []
     for r in range(1, num_periods - prac_periods + 1): 
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
+        path = directory + 'data/cda{}/{}/1_market.json'.format(g, r + prac_periods)
         rnd = pd.read_json(
             path,
         )
@@ -74,7 +74,7 @@ for g in range(1, num_cda + 1):
 
 
     for r in range(1, num_periods - prac_periods + 1):
-        path = directory + 'Flow_Market_Data/data/cda{}/{}/1_participant.json'.format(g, r + prac_periods)
+        path = directory + 'data/cda{}/{}/1_participant.json'.format(g, r + prac_periods)
         rnd = pd.read_json(
             path,
         )

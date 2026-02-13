@@ -2,7 +2,7 @@ from common import *
 from helpers import *
 from config import *
 
-data_directory = '/Users/YilinLi/Documents/UCSC/Flow Data/FLOW_MARKET_DATA/'
+data_directory = os.path.dirname(os.path.abspath(__file__)) + '/'
 
 required_files= [
     'data_interval.csv', 

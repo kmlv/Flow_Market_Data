@@ -1,0 +1,29 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Paper files (not part of replication package)
+_TempPaperAndAppendix/
+
+# Verification reports (internal, not for distribution)
+_verification_report*
+
+# Generated PDFs (can be regenerated from .md)
+README.pdf
+
+# Temporary LaTeX files
+_header.tex
+
+# Claude Code
+CLAUDE.md
