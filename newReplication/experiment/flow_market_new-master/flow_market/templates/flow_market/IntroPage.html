@@ -1,0 +1,10 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+{% block content %}
+{% if treatment == "flo" %}
+<iframe src="https://docs.google.com/document/d/e/2PACX-1vSxan39aGGDpVXP1z9H6Rm_MpJJ_UBEhQzGuE3zsrTNPKRRxQRAai4gvG4--9nQNQ6OuTzoADg0TpW8/pub?embedded=true" height="1000" width="100%"  style="border:none;"></iframe>
+{% elif treatment == "cda" %}
+<iframe src="https://docs.google.com/document/d/e/2PACX-1vQ5WAxwMPIQIWpOJYvVtLP93L9y8kyR4smk-7_y0JnzzTYBrURKBh4oArWkZbaIJLm9ThE7TOR_XX8N/pub?embedded=true" height="1000" width="100%"  style="border:none;" ></iframe>
+{% endif %}
+{% next_button %}
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+{% block title %}
+Your results for this period
+{% endblock %}
+{% block content %}
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+</style>
+<table>
+    <tr>
+        <th>Period</th>
+        <th>Practice or Paid</th>
+        <!-- <th>Profit from contract</th> -->
+        <!-- <th>Profit from trading</th> -->
+        <th>Total</th>
+    </tr>
+    {{ for d in data }}
+    <tr>
+        <td>{{d.round_number}}</td>
+        {{ if d.practice == True }}
+        <td>Practice</td>
+        {{ else }}
+        <td>Paid</td>
+        {{ endif }}
+        <!-- <td>{{d.profit_from_contract}}</td> -->
+        <!-- <td>{{d.profit_from_trading}}</td> -->
+        <td>{{d.profit}}</td>
+    </tr>
+    {{ endfor }}
+</table>
+{% endblock %}
