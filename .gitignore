@@ -22,8 +22,17 @@ _verification_report*
 # Generated PDFs (can be regenerated from .md)
 README.pdf
 
+# Robustness output variants (regenerable, also in newReplication/output/)
+figures_2s/
+figures_5s/
+figures_10s/
+tables_2s/
+tables_5s/
+tables_10s/
+
 # Temporary LaTeX files
 _header.tex
 
 # Claude Code
 CLAUDE.md
+.claude/
