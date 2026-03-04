@@ -1,0 +1,10 @@
+<script>
+    class StatusChart {
+        update(data) {
+            var cash = document.getElementById('cashStatus');
+            cash.innerHTML = "Cash: " + data['cash'];
+            var inventory = document.getElementById('inventoryStatus');
+            inventory.innerHTML = "Inventory: " + data['inventory'];
+        }
+    }
+</script>

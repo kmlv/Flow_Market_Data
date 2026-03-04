@@ -1,0 +1,64 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.2.3/dist/chartjs-plugin-dragdata.min.js"></script>
+
+<script>
+    class InventoryChart {
+        // Class variables
+        static myChart;
+
+        get data() {
+            return {
+                datasets: [{
+                    label: 'Inventories',
+                    pointRadius: 0,
+                    data: [],
+                    borderColor: BLUE,
+                }]
+            }
+        }
+
+        get scales() {
+            return {
+                x: {
+                    titile: {
+                        display: true,
+                        text: 'Time'
+                    },
+                    type: 'linear',
+                    min: 0,
+                    suggestedMax: 120,
+                    position: 'bottom',
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Inventory',
+                    },
+                    type: 'linear',
+                    suggestedMin: 0,
+                    suggestedMax: 5
+                }
+            }
+        }
+
+        get config() {
+            return {
+                type: 'line',
+                data: this.data,
+                options: {
+                    animations: null,
+                    scales: this.scales
+                }
+            }
+        }
+
+        show() {
+            InventoryChart.myChart = new Chart(document.getElementById("inventoryChart"), this.config);
+        }
+
+        update(data) {
+            InventoryChart.myChart.data.datasets[0].data = data;
+            InventoryChart.myChart.update();
+        }
+    }
+</script>

@@ -1,0 +1,751 @@
+from common import *
+from helpers import *   
+from config import *
+# data_dir is defined in config.py
+
+plt.close()
+
+def main():
+    print("flow.py params imported")
+
+if __name__ == "__main__":
+     main()
+
+
+# read in data 
+
+list_market_flow = [] # list of per period dataframes for each group
+delta_prices_flow30_all20 = [] # list of price changes for each FLOW30 group in all 20 periods
+delta_prices_flow60_all20 = [] # list of price changes for each FLOW60 group in all 20 periods
+delta_prices_flow60_last10 = [] # list of price changes for each FLOW60 group in last 10 periods
+delta_prices_flow30_last10 = [] # list of price changes for each FLOW30 group in last 10 periods
+delta_prices_flow60_first10 = [] # list of price changes for each FLOW60 group in first 10 periods
+delta_prices_flow30_first10 = [] # list of price changes for each FLOW30 group in first 10 periods
+delta_prices_flow_all20_interval = [] # list of price changes for each FLOW group in all 20 periods at interval
+delta_prices_flow_last10_interval = [] # list of price changes for each FLOW group in last 10 periods at interval
+delta_prices_flow_first10_interval = [] # list of price changes for each FLOW group in first 10 periods at interval
+regress_flow = pd.DataFrame() # dataframe for regression analysis for each x-second interval
+regress_flow_period = pd.DataFrame() # dataframe for regression with each period as an observation
+regress_flow_second = pd.DataFrame() # dataframe for regression with each second as an observation
+
+
+for g in range(1, num_flow + 1):
+    name = 'group' + str(g)
+    group = []
+    delta_price_all20 = []
+    delta_price_last10 = []
+    delta_price_first10 = []
+    for r in range(1, num_periods - prac_periods + 1): 
+        path = data_dir + 'flow{}/{}/1_market.json'.format(g, r + prac_periods)
+        rnd = pd.read_json(
+            path,
+        )
+        rnd = rnd[(rnd['before_transaction'] == False)].reset_index(drop=True)
+        rnd['clearing_price'].fillna(method='bfill', inplace=True)
+        rnd['clearing_price'].fillna(method='ffill', inplace=True)
+        delta_price_all20.extend(rnd['clearing_price'].diff())
+        if r > (num_periods - prac_periods) // 2:
+            delta_price_last10.extend(rnd['clearing_price'].diff())
+        else:
+            delta_price_first10.extend(rnd['clearing_price'].diff())
+        rnd.fillna(0, inplace=True)
+        rnd = rnd.drop(columns=['id_in_subsession', 'before_transaction'])
+        # rnd['cumulative_quantity'] = rnd['clearing_rate'].cumsum()
+        rnd['moving_average'] = rnd['clearing_price'].rolling(window=moving_average_size).mean()
+
+        path_par = data_dir + 'flow{}/{}/1_participant.json'.format(g, r + prac_periods)
+        par = pd.read_json(
+            path_par,
+            )
+        par = par.explode('executed_contracts')
+        par.reset_index(drop=True, inplace=True)
+        par = df_explosion(par, 'executed_contracts')
+        par = par[(par['before_transaction'] == False)].reset_index(drop=True)
+        par['change_in_inventory'] = par[par['timestamp'] < round_length - 1].groupby('id_in_group')['inventory'].diff().abs()
+        par['change_in_inventory'].fillna(0, inplace=True)
+        par['cumulative_quantity'] = par.groupby(['id_in_group'])['change_in_inventory'].cumsum()
+        def calculate_final_inv_change(row):
+            return row['change_in_inventory'] + max(0, row['fill_quantity'] - row['cumulative_quantity'])
+        par['change_in_inventory'] = par.apply(calculate_final_inv_change, axis=1)
+        def calculate_final_volume(row):
+            return row['cumulative_quantity'] + max(0, row['fill_quantity'] - row['cumulative_quantity'])
+        par['cumulative_quantity'] = par.apply(calculate_final_volume, axis=1)
+        par_agg = par.groupby('timestamp', as_index=False).aggregate({'cumulative_quantity': 'sum', 'change_in_inventory': 'sum'}).reset_index(drop=True)
+        par_agg['cumulative_quantity'] = par_agg['cumulative_quantity'] / 2
+        rnd = pd.merge(rnd, par_agg, on='timestamp', how='left')
+        rnd.drop(columns=['clearing_rate'], inplace=True)
+        rnd.rename(columns={'change_in_inventory': 'clearing_rate'}, inplace=True)
+
+        # get df for each second
+        reg_df_sec = rnd.copy()
+        reg_df_sec['period'] = r
+        reg_df_sec['group'] = g
+        reg_df_sec['block'] = reg_df_sec['period'] // ((num_periods - prac_periods) // blocks) + (reg_df_sec['period'] % ((num_periods - prac_periods) // blocks) != 0)
+        reg_df_sec['format'] = 'Flow30' if g <= num_flow30 else 'Flow60'
+        reg_df_sec['ce_price'] = ce_price[r - 1]
+        reg_df_sec['ce_quantity'] = ce_quantity[r - 1]
+        reg_df_sec['treat'] = 'L' if g <= 5 else 'H'
+        
+        regress_flow_second = pd.concat([regress_flow_second, reg_df_sec], ignore_index=True)
+
+
+        # compute prices for each x-second intervals
+        reg_df = rnd.copy()
+        reg_df['interval'] = (reg_df['timestamp'] // price_interval_size) + 1
+
+        def calculate_difference(group):
+            return group.iloc[-1] - group.iloc[0]
+
+        result_reg_df = reg_df.groupby('interval').apply(lambda x: pd.Series({
+            'quantity': x['clearing_rate'].sum(),
+            'weighted_price': (x['clearing_price'] * x['clearing_rate']).sum() / x['clearing_rate'].sum() if x['clearing_rate'].sum() != 0 else np.nan,
+            'price_change_int': calculate_difference(x['clearing_price']),
+        })).reset_index()
+        result_reg_df['weighted_price'].fillna(method='ffill', inplace=True)
+        result_reg_df['weighted_price'].fillna(method='bfill', inplace=True)
+        result_reg_df['period'] = r
+        result_reg_df['group'] = g
+        result_reg_df['block'] = result_reg_df['period'] // ((num_periods - prac_periods) // blocks) + (result_reg_df['period'] % ((num_periods - prac_periods) // blocks) != 0)
+        result_reg_df['format'] = 'Flow30' if g <= num_flow30 else 'Flow60'
+        result_reg_df['price_change'] = result_reg_df['weighted_price'].diff()
+        result_reg_df['price_change_int'] = result_reg_df['price_change_int'] * result_reg_df['quantity'] / result_reg_df['quantity'].sum()
+        result_reg_df['ce_price'] = ce_price[r - 1]
+        result_reg_df['ce_quantity'] = ce_quantity[r - 1]
+        result_reg_df['cum_volume'] = result_reg_df['quantity'].cumsum()
+        result_reg_df['%cumsum'] = result_reg_df['cum_volume'] / result_reg_df['ce_quantity']
+        
+        regress_flow = pd.concat([regress_flow, result_reg_df], ignore_index=True)
+
+        rnd = rnd[(rnd['timestamp'] >= leave_out_seconds) & (rnd['timestamp'] < round_length - leave_out_seconds_end)]
+        group.append(rnd) 
+    if g <= num_flow30:
+        delta_prices_flow30_all20.append(delta_price_all20)
+        delta_prices_flow30_last10.append(delta_price_last10)
+        delta_prices_flow30_first10.append(delta_price_first10)
+    else:
+        delta_prices_flow60_all20.append(delta_price_all20)
+        delta_prices_flow60_last10.append(delta_price_last10)
+        delta_prices_flow60_first10.append(delta_price_first10)
+    df = pd.concat(group, ignore_index=True, sort=False)
+    df.columns = ['timestamp', 'clearing_price', 'clearing_rate', 'cumulative_quantity', 'moving_average']
+    df['timestamp'] = np.arange(1, len(df) + 1)
+    df['group_id'] = g
+    list_market_flow.append(df)
+    
+# merge the list of df's
+market_per_second_flow = pd.concat(list_market_flow, ignore_index=True, sort=False)
+market_per_second_flow = market_per_second_flow.replace(0, np.nan)
+
+mask_l = market_per_second_flow['group_id'] <= num_flow30
+mask_h = market_per_second_flow['group_id'] > num_flow30
+
+means_l = market_per_second_flow[mask_l]\
+    .groupby('timestamp')[['clearing_price', 'clearing_rate', 'cumulative_quantity']]\
+    .transform('mean')
+means_h = market_per_second_flow[mask_h]\
+    .groupby('timestamp')[['clearing_price', 'clearing_rate', 'cumulative_quantity']]\
+    .transform('mean')
+
+market_per_second_flow.loc[mask_l, 'mean_clearing_price'] = means_l['clearing_price']
+market_per_second_flow.loc[mask_l, 'mean_clearing_rate'] = means_l['clearing_rate']
+market_per_second_flow.loc[mask_l, 'mean_cumulative_quantity'] = means_l['cumulative_quantity']
+
+market_per_second_flow.loc[mask_h, 'mean_clearing_price'] = means_h['clearing_price']
+market_per_second_flow.loc[mask_h, 'mean_clearing_rate'] = means_h['clearing_rate']
+market_per_second_flow.loc[mask_h, 'mean_cumulative_quantity'] = means_h['cumulative_quantity']
+
+market_per_second_flow = market_per_second_flow.replace(np.nan, 0)
+market_per_second_flow['period'] = market_per_second_flow['timestamp'] // round_length + (market_per_second_flow['timestamp'] % round_length != 0)
+market_per_second_flow['block'] = market_per_second_flow['period'] // ((num_periods - prac_periods) // blocks) + (market_per_second_flow['period'] % ((num_periods - prac_periods) // blocks) != 0)
+market_per_second_flow['ce_price'] = market_per_second_flow['block'].apply(lambda x: price[x - 1])
+market_per_second_flow['ce_quantity'] = market_per_second_flow['block'].apply(lambda x: quantity[x - 1])
+market_per_second_flow['ce_rate'] = market_per_second_flow['ce_quantity'] / (round_length - leave_out_seconds - leave_out_seconds_end) 
+
+
+# plot clearing prices in all rounds for all groups 
+plt.figure(figsize=(20, 5))
+for l in range(num_flow30):
+    lab = '_group ' + str(l + 1)
+    plt.step(data=market_per_second_flow[(market_per_second_flow['clearing_price'] > 0) \
+                                       & (market_per_second_flow['group_id'] == l + 1)], \
+            x='timestamp', y='clearing_price', where='pre', c=colors[l], label=lab)
+plt.step(data=market_per_second_flow[(market_per_second_flow['mean_clearing_price'] > 0) \
+                                   & (market_per_second_flow['group_id'] == 1)], \
+            x='timestamp', y='mean_clearing_price', where='pre', c='green', label='Mean', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 1)], \
+         x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 18, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.ylim(0, 20)
+plt.xlabel('Time')
+plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Price')
+# plt.title('Flow Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'FigureS1b_Flow30_Prices_All.png'))
+plt.close()
+
+plt.figure(figsize=(20, 5))
+plt.step(data=market_per_second_flow[(market_per_second_flow['mean_clearing_price'] > 0) \
+                                   & (market_per_second_flow['group_id'] == 1)], \
+            x='timestamp', y='mean_clearing_price', where='pre', c='green', label='Flow30', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 1)], \
+         x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 18, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.ylim(0, 20)
+plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
+plt.xlabel('Time')
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Price')
+# plt.title('Flow Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'Figure4b_Flow30_Prices.png'))
+plt.close()
+
+plt.figure(figsize=(20, 5))
+for l in range(num_flow60):
+    lab = '_group ' + str(l + 1)
+    plt.step(data=market_per_second_flow[(market_per_second_flow['clearing_price'] > 0) \
+                                       & (market_per_second_flow['group_id'] == l + 1 + num_flow30)], \
+            x='timestamp', y='clearing_price', where='pre', c=colors[l], label=lab)
+plt.step(data=market_per_second_flow[(market_per_second_flow['mean_clearing_price'] > 0) \
+                                   & (market_per_second_flow['group_id'] == 6)], \
+            x='timestamp', y='mean_clearing_price', where='pre', c='green', label='Mean', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 6)], \
+         x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 18, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.ylim(0, 20)
+plt.xlabel('Time')
+plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Price')
+# plt.title('Flow Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'FigureS1c_Flow60_Prices_All.png'))
+plt.close()
+
+plt.figure(figsize=(20, 5))
+plt.step(data=market_per_second_flow[(market_per_second_flow['mean_clearing_price'] > 0) \
+                                   & (market_per_second_flow['group_id'] == 6)], \
+            x='timestamp', y='mean_clearing_price', where='pre', c='green', label='Flow60', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 6)], \
+         x='timestamp', y='ce_price', where='pre', c='plum', label='CE Price')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 18, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.ylim(0, 20)
+plt.xlabel('Time')
+plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Price')
+# plt.title('Flow Transaction Prices vs Time')
+plt.savefig(os.path.join(figures_dir, 'Figure4c_Flow60_Prices.png'))
+plt.close()
+
+
+# plot clearing rates in all rounds for all groups 
+plt.figure(figsize=(20, 5))
+for l in range(num_flow30): 
+    lab = '_group ' + str(l + 1)
+    plt.step(data=market_per_second_flow[(market_per_second_flow['clearing_price'] > 0) \
+                                       & (market_per_second_flow['group_id'] == l + 1)], \
+            x='timestamp', y='clearing_rate', where='pre', c=colors[l], label=lab)
+plt.step(data=market_per_second_flow[(market_per_second_flow['mean_clearing_price'] > 0) \
+                                   & (market_per_second_flow['group_id'] == 1)], \
+        x='timestamp', y='mean_clearing_rate', where='pre', c='green', label='Mean', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 1)], \
+         x='timestamp', y='ce_rate', where='pre', c='plum', label='CE Rate')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=35, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 30, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.xlabel('Time')
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Shares/second')
+plt.ylim(0, 35)
+# plt.title('Flow Transaction Rates vs Time')
+plt.savefig(os.path.join(figures_dir, 'FigureS5b_Flow30_Rate.png'))
+plt.close()
+
+plt.figure(figsize=(20, 5))
+for l in range(num_flow60): 
+    lab = '_group ' + str(l + 1)
+    plt.step(data=market_per_second_flow[(market_per_second_flow['clearing_price'] > 0) \
+                                       & (market_per_second_flow['group_id'] == l + 1 + num_flow30)], \
+            x='timestamp', y='clearing_rate', where='pre', c=colors[l], label=lab)
+plt.step(data=market_per_second_flow[(market_per_second_flow['mean_clearing_price'] > 0) \
+                                   & (market_per_second_flow['group_id'] == 6)], \
+        x='timestamp', y='mean_clearing_rate', where='pre', c='green', label='Mean', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 6)], \
+         x='timestamp', y='ce_rate', where='pre', c='plum', label='CE Rate')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=35, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 2, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 30, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.xlabel('Time')
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Shares/second')
+plt.ylim(0, 35)
+# plt.title('Flow Transaction Rates vs Time')
+plt.savefig(os.path.join(figures_dir, 'FigureS5c_Flow60_Rate.png'))
+plt.close()
+
+# plot cumulative quantities in all rounds for all groups 
+plt.figure(figsize=(20, 5))
+for l in range(num_flow30): 
+    lab = '_group ' + str(l + 1)
+    plt.plot(market_per_second_flow[(market_per_second_flow['group_id'] == l + 1)]['timestamp'], \
+            market_per_second_flow[(market_per_second_flow['group_id'] == l + 1)]['cumulative_quantity'], \
+            c=colors[l], label=lab)
+plt.plot(market_per_second_flow[(market_per_second_flow['group_id'] == 1)]['timestamp'], \
+        market_per_second_flow[(market_per_second_flow['group_id'] == 1)]['mean_cumulative_quantity'], \
+        c='green', label='Mean', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 1)], \
+         x='timestamp', y='ce_quantity', where='pre', c='plum', label='CE Quantity')
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 200, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 1900, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.xlabel('Time')
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Shares')
+plt.ylim(0, 2000)
+# plt.title('Flow Cumulative Quantity vs Time')
+plt.savefig(os.path.join(figures_dir, 'flow30_cumsum.png'))
+plt.close()
+
+
+
+plt.figure(figsize=(20, 5))
+for l in range(num_flow60): 
+    lab = '_group ' + str(l + 1)
+    plt.plot(market_per_second_flow[(market_per_second_flow['group_id'] == l + 1 + num_flow30)]['timestamp'], \
+            market_per_second_flow[(market_per_second_flow['group_id'] == l + 1 + num_flow30)]['cumulative_quantity'], \
+            c=colors[l], label=lab)
+plt.plot(market_per_second_flow[(market_per_second_flow['group_id'] == 6)]['timestamp'], \
+        market_per_second_flow[(market_per_second_flow['group_id'] == 6)]['mean_cumulative_quantity'], \
+        c='green', label='Mean', linestyle='solid')
+plt.step(data=market_per_second_flow[(market_per_second_flow['group_id'] == 6)], \
+         x='timestamp', y='ce_quantity', where='pre', c='plum', label='CE Quantity')
+
+vline_xs = [(round_length - leave_out_seconds - leave_out_seconds_end) * i for i in range(1, num_periods - prac_periods)]
+for i, x in enumerate(vline_xs, 1):
+    color = 'slategray' if i in [4, 8, 12, 16] else 'lightgray'
+    plt.vlines(x, ymin=0, ymax=20, colors=color, linestyles='dotted')
+round_label_xs = list(range(60, 2401, 120))
+for i, x in enumerate(round_label_xs, 1):
+    plt.text(x, 200, str(i), color='slategray', ha='center', fontsize=9)
+block_label_xs = list(range(240, 2161, 480))  # [240, 720, 1200, 1680, 2160]
+for i, x in enumerate(block_label_xs, 1):
+    plt.text(x, 1900, f'Block {i}', color='slategray', ha='center', fontsize=10, fontweight='bold')
+
+plt.legend(bbox_to_anchor=(1, 1),
+    loc='upper left', 
+    borderaxespad=0.5)
+plt.xlabel('Time')
+plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
+plt.ylabel('Shares')
+plt.ylim(0, 2000)
+# plt.title('Flow Cumulative Quantity vs Time')
+plt.savefig(os.path.join(figures_dir, 'flow60_cumsum.png'))
+plt.close()
+
+
+# participant-level data 
+list_participant_flow = []
+
+for g in range(1, num_flow + 1): 
+    # dictionary for market prices and rates/quantities 
+    # create a list of dataframes to be concatenated after groupby 
+    data_mkt = []
+
+    # each period X is denoted as 'mktX'
+    market = {}
+    for r in range(1, num_periods - prac_periods + 1):
+        name = 'mkt' + str(r)
+        path = data_dir + 'flow{}/{}/1_market.json'.format(g, r + prac_periods)
+        market[name] = pd.read_json(path)
+        market[name].fillna(0, inplace=True)
+        market[name]['unit_weighted_price'] = market[name]['clearing_price'] * market[name]['clearing_rate']
+        df = market[name][market[name]['before_transaction'] == False].groupby('id_in_subsession').aggregate({'clearing_price': 'mean', 'clearing_rate': 'sum', 'unit_weighted_price': 'sum'}).reset_index()
+        df['unit_weighted_price'] = df['unit_weighted_price'] / df['clearing_rate']
+        df['ce_price'] = ce_price[r - 1]
+        df['period'] = r
+        df.rename(columns={'id_in_subsession': 'group_id', 'clearing_price': 'time_weighted_price', 'clearing_rate': 'quantity'}, inplace=True)
+        df['group_id'] = g
+        df.fillna(0, inplace=True)
+        data_mkt.append(df)
+
+
+    # dictionary for participant cash, inventories, and transaction rates if any
+    # create a list of dataframes to be concatenated after groupby 
+    data_par = []
+
+    # each period X is denoted as 'parX'
+    participant = {}
+    for r in range(1, num_periods - prac_periods + 1):
+        name = 'par' + str(r)
+        path = data_dir + 'flow{}/{}/1_participant.json'.format(g, r + prac_periods)
+        participant[name] = pd.read_json(path)
+        all_orders = set()
+        for idx, row in participant[name].iterrows():
+            for o in row['active_orders']:
+                all_orders.add(o['order_id'])
+        number_of_orders = max(all_orders) - min(all_orders) + 1
+        # participant[name]['orders'] = participant[name]['executed_orders'].apply(lambda x: len(x))
+        participant[name].fillna(0, inplace=True)
+        participant[name] = participant[name].explode('executed_contracts')
+        participant[name].reset_index(drop=True, inplace=True)
+        participant[name] = df_explosion(participant[name], 'executed_contracts')
+
+        participant[name]['change_in_inventory'] = participant[name][participant[name]['timestamp'] < round_length - 1].groupby('id_in_group')['inventory'].diff().abs()
+        participant[name]['change_in_inventory'].fillna(0, inplace=True)
+        participant[name]['transacted_quantity'] = participant[name].groupby(['id_in_group'])['change_in_inventory'].cumsum()
+        def calculate_final_volume(row):
+            return row['transacted_quantity'] + max(0, row['fill_quantity'] - row['transacted_quantity'])
+        participant[name]['transacted_quantity'] = participant[name].apply(calculate_final_volume, axis=1)
+        
+        def calculate_final_inventory(row):
+            if row['direction'] == 'sell':
+                return row['inventory'] - max(0, row['fill_quantity'] - abs(row['inventory']))
+            elif row['direction'] == 'buy':
+                return row['inventory'] + max(0, row['fill_quantity'] - abs(row['inventory']))
+        participant[name]['inventory'] = participant[name].apply(calculate_final_inventory, axis=1)
+
+        tmp_df = participant[name][(participant[name]['before_transaction'] == False) & (participant[name]['timestamp'] == round_length - 1)]
+
+        df = tmp_df.groupby('id_in_subsession').aggregate({'cash': 'sum', 'fill_quantity': 'sum', 'quantity': 'sum', 'transacted_quantity': 'sum',}).reset_index()
+        df['ce_profit'] = ce_profit[r - 1]
+        df['ce_quantity'] = ce_quantity[r - 1] 
+        df['payoff_percent'] = round(df['cash'] / df['ce_profit'], 4)
+        df['contract_percent'] = round(df['fill_quantity'] / df['ce_quantity'] / 2, 4)
+        df['period'] = r
+        df['orders'] = number_of_orders
+        df['id_in_subsession'] = g
+        df['transacted_quantity'] = df['transacted_quantity'] / 2
+        df['extra_traded_quantity'] = df['transacted_quantity'] - df['fill_quantity'] / 2
+        df.rename(columns={'id_in_subsession': 'group_id', 'cash': 'payoff', 'quantity': 'contract_quantity'}, inplace=True)
+        df.fillna(0, inplace=True)
+        data_par.append(df)
+
+    ########## Between-period ##########
+    between_df1 = pd.concat(data_mkt, ignore_index=True, axis=0)
+    between_df2 = pd.concat(data_par, ignore_index=True, axis=0)
+
+    between_df = pd.merge(between_df1, between_df2, on=['group_id', 'period'])
+    between_df['order_size'] = 2 *  between_df['quantity'] / between_df['orders'] 
+    list_participant_flow.append(between_df)
+
+
+# merge the list of df's
+participant_per_second_flow = pd.concat(list_participant_flow, ignore_index=True, sort=False)
+participant_per_second_flow = participant_per_second_flow.replace(0, np.nan)
+
+mask_l = participant_per_second_flow['group_id'] <= num_flow30
+mask_h = participant_per_second_flow['group_id'] > num_flow30
+
+means_l = participant_per_second_flow[mask_l].groupby('period')[['payoff_percent', 'contract_percent', 'time_weighted_price', 'unit_weighted_price', 'transacted_quantity']].transform('mean')
+means_h = participant_per_second_flow[mask_h].groupby('period')[['payoff_percent', 'contract_percent', 'time_weighted_price', 'unit_weighted_price', 'transacted_quantity']].transform('mean')
+
+participant_per_second_flow.loc[mask_l, 'mean_realized_surplus'] = means_l['payoff_percent']
+participant_per_second_flow.loc[mask_l, 'mean_contract_execution'] = means_l['contract_percent']
+participant_per_second_flow.loc[mask_l, 'mean_time_weighted_price'] = means_l['time_weighted_price']
+participant_per_second_flow.loc[mask_l, 'mean_unit_weighted_price'] = means_l['unit_weighted_price']
+participant_per_second_flow.loc[mask_l, 'mean_quantity'] = means_l['transacted_quantity']
+
+participant_per_second_flow.loc[mask_h, 'mean_realized_surplus'] = means_h['payoff_percent']
+participant_per_second_flow.loc[mask_h, 'mean_contract_execution'] = means_h['contract_percent']
+participant_per_second_flow.loc[mask_h, 'mean_time_weighted_price'] = means_h['time_weighted_price']
+participant_per_second_flow.loc[mask_h, 'mean_unit_weighted_price'] = means_h['unit_weighted_price']
+participant_per_second_flow.loc[mask_h, 'mean_quantity'] = means_h['transacted_quantity']
+participant_per_second_flow = participant_per_second_flow.replace(np.nan, 0)
+
+
+# realized surplus for all groups
+plt.figure(figsize=(8, 5))
+for l in range(num_flow30): 
+    lab = '_group ' + str(l + 1)
+    plt.plot(participant_per_second_flow[(participant_per_second_flow['payoff_percent'] > 0) \
+                                  & (participant_per_second_flow['group_id'] == l + 1)]['period'], \
+            participant_per_second_flow[(participant_per_second_flow['payoff_percent'] > 0) \
+                                 & (participant_per_second_flow['group_id'] == l + 1)]['payoff_percent'], \
+            linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_flow[(participant_per_second_flow['group_id'] == 1)]['period'], \
+        participant_per_second_flow[(participant_per_second_flow['group_id'] == 1)]['mean_realized_surplus'], \
+        linestyle='solid', c='green', label='Mean')
+plt.hlines(y=1, xmin=1, xmax=num_periods-prac_periods, colors='plum', linestyles='--')
+plt.legend(loc='lower right')
+plt.ylim(0, 1.2)
+plt.xlabel('Period')
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
+plt.ylabel('Percent')
+plt.title('Realized Surplus vs Period')
+plt.savefig(os.path.join(figures_dir, 'FigureS2d_Flow30_Surplus.png'))
+plt.close()
+
+plt.figure(figsize=(8, 5))
+for l in range(num_flow60): 
+    lab = '_group ' + str(l + 1)
+    plt.plot(participant_per_second_flow[(participant_per_second_flow['payoff_percent'] > 0) \
+                                  & (participant_per_second_flow['group_id'] == l + 1 + num_flow30)]['period'], \
+            participant_per_second_flow[(participant_per_second_flow['payoff_percent'] > 0) \
+                                 & (participant_per_second_flow['group_id'] == l + 1 + num_flow30)]['payoff_percent'], \
+            linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_flow[(participant_per_second_flow['group_id'] == 6)]['period'], \
+        participant_per_second_flow[(participant_per_second_flow['group_id'] == 6)]['mean_realized_surplus'], \
+        linestyle='solid', c='green', label='Mean')
+plt.hlines(y=1, xmin=1, xmax=num_periods-prac_periods, colors='plum', linestyles='--')
+plt.legend(loc='lower right')
+plt.ylim(0, 1.2)
+plt.xlabel('Period')
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
+plt.ylabel('Percent')
+plt.title('Realized Surplus vs Period')
+plt.savefig(os.path.join(figures_dir, 'FigureS2f_Flow60_Surplus.png'))
+plt.close()
+
+# contract execution for all groups
+plt.figure(figsize=(8, 5))
+for l in range(num_flow30): 
+    lab = '_group ' + str(l + 1)
+    plt.plot(participant_per_second_flow[(participant_per_second_flow['contract_percent'] > 0) \
+                                  & (participant_per_second_flow['group_id'] == l + 1)]['period'], \
+            participant_per_second_flow[(participant_per_second_flow['contract_percent'] > 0) \
+                                 & (participant_per_second_flow['group_id'] == l + 1)]['contract_percent'], \
+            linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_flow[(participant_per_second_flow['group_id'] == 1)]['period'], \
+        participant_per_second_flow[(participant_per_second_flow['group_id'] == 1)]['mean_contract_execution'], \
+        linestyle='solid', c='green', label='Mean')
+plt.hlines(y=1, xmin=1, xmax=num_periods-prac_periods, colors='plum', linestyles='--')
+plt.legend(loc='lower right')
+plt.ylim(0, 1.2)
+plt.xlabel('Period')
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
+plt.ylabel('Percent')
+plt.title('Filled Contract vs Period')
+plt.savefig(os.path.join(figures_dir, 'FigureS4b_Flow30_Contract.png'))
+plt.close()
+
+plt.figure(figsize=(8, 5))
+for l in range(num_flow60): 
+    lab = '_group ' + str(l + 1)
+    plt.plot(participant_per_second_flow[(participant_per_second_flow['contract_percent'] > 0) \
+                                  & (participant_per_second_flow['group_id'] == l + 1 + num_flow30)]['period'], \
+            participant_per_second_flow[(participant_per_second_flow['contract_percent'] > 0) \
+                                 & (participant_per_second_flow['group_id'] == l + 1 + num_flow30)]['contract_percent'], \
+            linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_flow[(participant_per_second_flow['group_id'] == 6)]['period'], \
+        participant_per_second_flow[(participant_per_second_flow['group_id'] == 6)]['mean_contract_execution'], \
+        linestyle='solid', c='green', label='Mean')
+plt.hlines(y=1, xmin=1, xmax=num_periods-prac_periods, colors='plum', linestyles='--')
+plt.legend(loc='lower right')
+plt.ylim(0, 1.2)
+plt.xlabel('Period')
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
+plt.ylabel('Percent')
+plt.title('Filled Contract vs Period')
+plt.savefig(os.path.join(figures_dir, 'FigureS4c_Flow60_Contract.png'))
+plt.close()
+
+# traded volume for all groups
+plt.figure(figsize=(8, 5))
+for l in range(num_flow30): 
+    lab = '_group' + str(l + 1)
+    plt.plot(participant_per_second_flow[(participant_per_second_flow['transacted_quantity'] > 0)\
+                                  & (participant_per_second_flow['group_id'] == l + 1)]['period'], \
+            participant_per_second_flow[(participant_per_second_flow['transacted_quantity'] > 0)\
+                                  & (participant_per_second_flow['group_id'] == l + 1)]['transacted_quantity'], \
+            linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_flow[(participant_per_second_flow['group_id'] == 1)]['period'], \
+        participant_per_second_flow[(participant_per_second_flow['group_id'] == 1)]['mean_quantity'], \
+        linestyle='solid', c='green', label='Mean')
+plt.step(data=participant_per_second_flow[(participant_per_second_flow['group_id'] == 1)], x='period', y='ce_quantity', where='mid', c='plum', label='CE Quantity')
+plt.legend(loc='lower right')
+plt.ylim(0, 2000)
+plt.xlabel('Period')
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
+plt.ylabel('Shares')
+plt.title('Traded Volume vs Period')
+plt.savefig(os.path.join(figures_dir, 'FigureS2c_Flow30_Volume.png'))
+plt.close()
+
+
+plt.figure(figsize=(8, 5))
+for l in range(num_flow60): 
+    lab = '_group' + str(l + 1)
+    plt.plot(participant_per_second_flow[(participant_per_second_flow['transacted_quantity'] > 0)\
+                                  & (participant_per_second_flow['group_id'] == l + 1 + num_flow30)]['period'], \
+            participant_per_second_flow[(participant_per_second_flow['transacted_quantity'] > 0)\
+                                  & (participant_per_second_flow['group_id'] == l + 1 + num_flow30)]['transacted_quantity'], \
+            linestyle='solid', c=colors[l], label=lab)
+plt.plot(participant_per_second_flow[(participant_per_second_flow['group_id'] == 6)]['period'], \
+        participant_per_second_flow[(participant_per_second_flow['group_id'] == 6)]['mean_quantity'], \
+        linestyle='solid', c='green', label='Mean')
+plt.step(data=participant_per_second_flow[(participant_per_second_flow['group_id'] == 6)], x='period', y='ce_quantity', where='mid', c='plum', label='CE Quantity')
+plt.legend(loc='lower right')
+plt.ylim(0, 2000)
+plt.xlabel('Period')
+plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
+plt.ylabel('Shares')
+plt.title('Traded Volume vs Period')
+plt.savefig(os.path.join(figures_dir, 'FigureS2e_Flow60_Volume.png'))
+plt.close()
+
+
+########## ---------- summary_flow statistics ---------- ##########
+summary_flow = participant_per_second_flow[['group_id', 'period', 'ce_price', 'unit_weighted_price', \
+                                    'payoff_percent', 'contract_percent', 'transacted_quantity', \
+                                    'orders', 'order_size', 'extra_traded_quantity']]\
+                                        .copy()
+
+summary_flow['price_dev'] = abs(summary_flow['unit_weighted_price'] - summary_flow['ce_price'])
+
+# Handle ce_price == 9 case separately
+mask = summary_flow['ce_price'] == 9
+
+# Vectorized sub-cases
+within_range = mask & summary_flow['unit_weighted_price'].between(8, 10)
+above_10 = mask & (summary_flow['unit_weighted_price'] > 10)
+below_8 = mask & (summary_flow['unit_weighted_price'] < 8)
+
+# Assign accordingly
+summary_flow.loc[within_range, 'price_dev'] = 0
+summary_flow.loc[above_10, 'price_dev'] = summary_flow['unit_weighted_price'] - 10
+summary_flow.loc[below_8, 'price_dev'] = 8 - summary_flow['unit_weighted_price']
+
+price_deviation_flow_all20 = summary_flow['price_dev'].tolist()
+price_deviation_flow_last10 = summary_flow[summary_flow['period'] > (num_periods - prac_periods) // 2]['price_dev'].tolist()
+price_deviation_flow_first10 = summary_flow[summary_flow['period'] <= (num_periods - prac_periods) // 2]['price_dev'].tolist()
+
+realized_surplus_flow_all20 = summary_flow['payoff_percent'].tolist()
+realized_surplus_flow_last10 = summary_flow[summary_flow['period'] > (num_periods - prac_periods) // 2]['payoff_percent'].tolist()
+realized_surplus_flow_first10 = summary_flow[summary_flow['period'] <= (num_periods - prac_periods) // 2]['payoff_percent'].tolist()
+
+percent_contract_flow_all20 = summary_flow['contract_percent'].tolist()
+percent_contract_flow_last10 = summary_flow[summary_flow['period'] > (num_periods - prac_periods) // 2]['contract_percent'].tolist()
+percent_contract_flow_first10 = summary_flow[summary_flow['period'] <= (num_periods - prac_periods) // 2]['contract_percent'].tolist()
+
+total_quantity_flow_all20 = summary_flow['transacted_quantity'].tolist()
+total_quantity_flow_last10 = summary_flow[summary_flow['period'] > (num_periods - prac_periods) // 2]['transacted_quantity'].tolist()
+total_quantity_flow_first10 = summary_flow[summary_flow['period'] <= (num_periods - prac_periods) // 2]['transacted_quantity'].tolist()
+
+price_volatility_flow_all20 = market_per_second_flow[market_per_second_flow['clearing_price'] > 0]['clearing_price'].tolist()
+price_volatility_flow_last10 = market_per_second_flow[(market_per_second_flow['clearing_price'] > 0) & (market_per_second_flow['timestamp'] > (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2)]['clearing_price'].tolist()
+price_volatility_flow_first10 = market_per_second_flow[(market_per_second_flow['clearing_price'] > 0) & (market_per_second_flow['timestamp'] <= (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2)]['clearing_price'].tolist()
+
+clearing_rate_flow30_all20 = market_per_second_flow[(market_per_second_flow['clearing_rate'] > 0) & (market_per_second_flow['group_id'] <= num_flow30)]['clearing_rate'].tolist()
+clearing_rate_flow30_last10 = market_per_second_flow[(market_per_second_flow['clearing_rate'] > 0) & (market_per_second_flow['timestamp'] > (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2) & (market_per_second_flow['group_id'] <= num_flow30)]['clearing_rate'].tolist()
+clearing_rate_flow30_first10 = market_per_second_flow[(market_per_second_flow['clearing_rate'] > 0) & (market_per_second_flow['timestamp'] <= (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2) & (market_per_second_flow['group_id'] <= num_flow30)]['clearing_rate'].tolist()
+clearing_rate_flow60_all20 = market_per_second_flow[(market_per_second_flow['clearing_rate'] > 0) & (market_per_second_flow['group_id'] > num_flow30)]['clearing_rate'].tolist()
+clearing_rate_flow60_last10 = market_per_second_flow[(market_per_second_flow['clearing_rate'] > 0) & (market_per_second_flow['timestamp'] > (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2) & (market_per_second_flow['group_id'] > num_flow30)]['clearing_rate'].tolist()
+clearing_rate_flow60_first10 = market_per_second_flow[(market_per_second_flow['clearing_rate'] > 0) & (market_per_second_flow['timestamp'] <= (round_length - leave_out_seconds - leave_out_seconds_end) * (num_periods - prac_periods) // 2) & (market_per_second_flow['group_id'] > num_flow30)]['clearing_rate'].tolist()
+
+order_number_flow_all20 = summary_flow['orders'].tolist()
+order_number_flow_last10 = summary_flow[summary_flow['period'] > (num_periods - prac_periods) // 2]['orders'].tolist()
+order_number_flow_first10 = summary_flow[summary_flow['period'] <= (num_periods - prac_periods) // 2]['orders'].tolist()
+
+order_size_flow_all20 = summary_flow['order_size'].tolist()
+order_size_flow_last10 = summary_flow[summary_flow['period'] > (num_periods - prac_periods) // 2]['order_size'].tolist()
+order_size_flow_first10 = summary_flow[summary_flow['period'] <= (num_periods - prac_periods) // 2]['order_size'].tolist()
+
+extra_traded_quantities_flow_all20 = summary_flow['order_size'].tolist()
+extra_traded_quantities_flow_last10 = summary_flow[summary_flow['period'] > (num_periods - prac_periods) // 2]['order_size'].tolist()
+extra_traded_quantities_flow_first10 = summary_flow[summary_flow['period'] <= (num_periods - prac_periods) // 2]['order_size'].tolist()
+
+regress_flow_period = summary_flow[['group_id', 'period', 'price_dev', 'payoff_percent', 'transacted_quantity', 'contract_percent']].copy()
+
+regress_flow_period['block'] = regress_flow_period['period'] // ((num_periods - prac_periods) // blocks) + (regress_flow_period['period'] % ((num_periods - prac_periods) // blocks) != 0).astype(int)
+regress_flow_period['format'] = regress_flow_period['group_id'].apply(
+    lambda x: 'Flow30' if x <= num_flow30 else 'Flow60'
+)
+regress_flow_period['ce_quantity'] = regress_flow_period['block'].apply(lambda x: quantity[x - 1])
+
+regress_flow_period.rename(columns={'group_id': 'group', 'payoff_percent': 'realized_surplus', 'transacted_quantity': 'traded_volume', 'contract_percent': 'filled_contract', 'price_dev': 'price_deviation'}, inplace=True)
+regress_flow_period['filled_ce_quantity'] = regress_flow_period['traded_volume'] / regress_flow_period['ce_quantity']
+
+regress_flow['price_deviation'] = 0
+for ind, row in regress_flow.iterrows():
+        if row['block'] == 3:
+            if 8 <= row['weighted_price'] <= 10: 
+                regress_flow.at[ind, 'price_deviation'] = 0 
+            elif row['weighted_price'] > 10: 
+                regress_flow.at[ind, 'price_deviation'] =  row['weighted_price'] - 10
+            else:
+                regress_flow.at[ind, 'price_deviation'] =  8 - row['weighted_price']   
+        else:
+            regress_flow.at[ind, 'price_deviation'] = abs(row['weighted_price'] - ce_price[row['period'] - 1])
