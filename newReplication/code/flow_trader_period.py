@@ -209,7 +209,7 @@ plt.title('CDF of the Order Price Difference (T1-T20)')
 plt.xlabel('Order Width')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'Figure9_Price_Range_CDF.png'))
+plt.savefig(os.path.join(figures_dir, 'Figure9_Price_Range_CDF.pdf'))
 plt.close()
 
 
@@ -226,7 +226,7 @@ plt.title('CDF of the Order Price Difference')
 plt.xlabel('Order Width')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'flow_order_price_diff_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_order_price_diff_cdf_all.pdf'))
 plt.close()
 
 # realized surplus
@@ -269,7 +269,7 @@ plt.title('CDF of the Realized Surplus (T1-T20)')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'flow_realized_surplus_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_realized_surplus_cdf_all20.pdf'))
 plt.close()
 
 plt.figure(figsize=(8, 6))
@@ -285,7 +285,7 @@ plt.title('CDF of the Realized Surplus')
 plt.xlabel('Realized Surplus')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'flow_realized_surplus_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_realized_surplus_cdf_all.pdf'))
 plt.close()
 
 
@@ -343,7 +343,7 @@ plt.title('CDF of the Price Deviation from Contract Price (T1-T20)')
 plt.xlabel('Price Minimum Margin')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'FigureS6_Price_Markup_CDF.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS6_Price_Markup_CDF.pdf'))
 plt.close()
 
 zero_counts = {
@@ -380,7 +380,7 @@ plt.title('CDF of the Price Deviation from Contract Price')
 plt.xlabel('Price Minimum Margin')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'flow_price_dev_from_contract_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_price_dev_from_contract_cdf_all.pdf'))
 plt.close()
 
 
@@ -424,7 +424,7 @@ plt.title('CDF of the Max Rate (T1-T20)')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'Figure7_Umax_CDF.png'))
+plt.savefig(os.path.join(figures_dir, 'Figure7_Umax_CDF.pdf'))
 plt.close()
 
 plt.figure(figsize=(8, 6))
@@ -440,7 +440,7 @@ plt.title('CDF of the Max Rate')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'FigureS7_Umax_CDF_Periods.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS7_Umax_CDF_Periods.pdf'))
 plt.close()
 
 # max rate percent 
@@ -483,7 +483,7 @@ plt.title('CDF of the Max Rate (T1-T20)')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_cdf_all20.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_cdf_all20.pdf'))
 plt.close()
 
 
@@ -500,7 +500,7 @@ plt.title('CDF of the Max Rate')
 plt.xlabel('Max Rate')
 plt.ylabel('Probability')
 plt.legend()
-plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_cdf_all.png'))
+plt.savefig(os.path.join(figures_dir, 'flow_max_rate_percent_cdf_all.pdf'))
 plt.close()
 
 # excess profit
@@ -558,7 +558,7 @@ ax.set_xlabel('pH - pL')
 ax.set_ylabel('Excess Profit')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'FigureS9a_PriceRange_vs_Profit.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS9a_PriceRange_vs_Profit.pdf'))
 plt.close()
 
 
@@ -582,7 +582,7 @@ ax.set_xlabel('Max Rate Percent')
 ax.set_ylabel('Excess Profit')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'FigureS9b_Umax_vs_Profit.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS9b_Umax_vs_Profit.pdf'))
 plt.close()
 
 # price_dev_from_contract vs excess profit
@@ -605,7 +605,7 @@ ax.set_xlabel('Price Deviation from Contract Price')
 ax.set_ylabel('Excess Profits')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'FigureS9c_Markup_vs_Profit.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS9c_Markup_vs_Profit.pdf'))
 plt.close()
 
 
@@ -630,7 +630,7 @@ ax.set_xlabel('Max Rate Percent')
 ax.set_ylabel('Realized Surplus')
 ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig(os.path.join(figures_dir, 'FigureS8_Speed_vs_Surplus.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS8_Speed_vs_Surplus.pdf'))
 plt.close()
 
 

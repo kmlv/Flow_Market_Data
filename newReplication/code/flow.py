@@ -194,7 +194,7 @@ plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
 # plt.title('Flow Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'FigureS1b_Flow30_Prices_All.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS1b_Flow30_Prices_All.pdf'))
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -223,7 +223,7 @@ plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
 # plt.title('Flow Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'Figure4b_Flow30_Prices.png'))
+plt.savefig(os.path.join(figures_dir, 'Figure4b_Flow30_Prices.pdf'))
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -257,7 +257,7 @@ plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
 # plt.title('Flow Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'FigureS1c_Flow60_Prices_All.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS1c_Flow60_Prices_All.pdf'))
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -286,7 +286,7 @@ plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
 # plt.title('Flow Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'Figure4c_Flow60_Prices.png'))
+plt.savefig(os.path.join(figures_dir, 'Figure4c_Flow60_Prices.pdf'))
 plt.close()
 
 
@@ -320,7 +320,7 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Shares/second')
 plt.ylim(0, 35)
 # plt.title('Flow Transaction Rates vs Time')
-plt.savefig(os.path.join(figures_dir, 'FigureS5b_Flow30_Rate.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS5b_Flow30_Rate.pdf'))
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -352,7 +352,7 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Shares/second')
 plt.ylim(0, 35)
 # plt.title('Flow Transaction Rates vs Time')
-plt.savefig(os.path.join(figures_dir, 'FigureS5c_Flow60_Rate.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS5c_Flow60_Rate.pdf'))
 plt.close()
 
 # plot cumulative quantities in all rounds for all groups 
@@ -386,7 +386,7 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Shares')
 plt.ylim(0, 2000)
 # plt.title('Flow Cumulative Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'flow30_cumsum.png'))
+plt.savefig(os.path.join(figures_dir, 'flow30_cumsum.pdf'))
 plt.close()
 
 
@@ -422,7 +422,7 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Shares')
 plt.ylim(0, 2000)
 # plt.title('Flow Cumulative Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'flow60_cumsum.png'))
+plt.savefig(os.path.join(figures_dir, 'flow60_cumsum.pdf'))
 plt.close()
 
 
@@ -555,7 +555,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS2d_Flow30_Surplus.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS2d_Flow30_Surplus.pdf'))
 plt.close()
 
 plt.figure(figsize=(8, 5))
@@ -576,7 +576,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS2f_Flow60_Surplus.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS2f_Flow60_Surplus.pdf'))
 plt.close()
 
 # contract execution for all groups
@@ -598,7 +598,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS4b_Flow30_Contract.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS4b_Flow30_Contract.pdf'))
 plt.close()
 
 plt.figure(figsize=(8, 5))
@@ -619,7 +619,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS4c_Flow60_Contract.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS4c_Flow60_Contract.pdf'))
 plt.close()
 
 # traded volume for all groups
@@ -641,7 +641,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS2c_Flow30_Volume.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS2c_Flow30_Volume.pdf'))
 plt.close()
 
 
@@ -663,7 +663,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS2e_Flow60_Volume.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS2e_Flow60_Volume.pdf'))
 plt.close()
 
 

@@ -191,7 +191,7 @@ plt.xlim(0, round_length * (num_periods - prac_periods) + 1)
 plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
-plt.savefig(os.path.join(figures_dir, 'FigureS1a_CDA_Prices_All.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS1a_CDA_Prices_All.pdf'))
 plt.close()
 
 plt.figure(figsize=(20, 5))
@@ -221,7 +221,7 @@ plt.xlabel('Time')
 plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_length), np.arange(0, round_length * (num_periods - prac_periods) + 1, round_length))
 plt.ylabel('Price')
 plt.title('CDA Transaction Prices vs Time')
-plt.savefig(os.path.join(figures_dir, 'Figure4a_CDA_Prices.png'))
+plt.savefig(os.path.join(figures_dir, 'Figure4a_CDA_Prices.pdf'))
 plt.close()
 
 
@@ -262,7 +262,7 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Clearing Quantity')
 plt.ylim(0, 500)
 # plt.title('CDA Clearing Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'FigureS5a_CDA_Rate.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS5a_CDA_Rate.pdf'))
 plt.close()
 
 # plot cumulative quantities in all rounds for all groups 
@@ -295,7 +295,7 @@ plt.xticks(np.arange(1, round_length * (num_periods - prac_periods) + 2, round_l
 plt.ylabel('Shares')
 plt.ylim(0, 2000)
 # plt.title('CDA Cumulative Quantity vs Time')
-plt.savefig(os.path.join(figures_dir, 'cda_cumsum.png'))
+plt.savefig(os.path.join(figures_dir, 'cda_cumsum.pdf'))
 plt.close()
 
 
@@ -427,7 +427,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Realized Surplus vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS2b_CDA_Surplus.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS2b_CDA_Surplus.pdf'))
 plt.close()
 
 # contract execution for all groups
@@ -447,7 +447,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Percent')
 plt.title('Filled Contract vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS4a_CDA_Contract.png'))
+plt.savefig(os.path.join(figures_dir, 'FigureS4a_CDA_Contract.pdf'))
 plt.close()
 
 # traded volume for all groups
@@ -468,7 +468,7 @@ plt.xlabel('Period')
 plt.xticks(np.arange(1, num_periods - prac_periods + 1), np.arange(1, num_periods - prac_periods + 1))
 plt.ylabel('Shares')
 plt.title('Traded Volume vs Period')
-plt.savefig(os.path.join(figures_dir, 'FigureS2a_CDA_Volume.png')) 
+plt.savefig(os.path.join(figures_dir, 'FigureS2a_CDA_Volume.pdf')) 
 plt.close()
 
 

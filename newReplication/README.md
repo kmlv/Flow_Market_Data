@@ -154,7 +154,7 @@ All output is written to the `output/` directory:
 ```
 output/
   tables/        LaTeX table files (.tex)
-  figures/       Figure image files (.png)
+  figures/       Figure files (.pdf, vector format)
   intermediate/  Intermediate analysis data (.csv)
 ```
 
@@ -184,17 +184,17 @@ Figures 1--3 in the paper are not code-generated (they are screenshots of the ex
 | Figure 1 | n.a. (interface screenshot) | n.a. |
 | Figure 2 | n.a. (interface screenshot) | n.a. |
 | Figure 3 | n.a. (theoretical diagram) | n.a. |
-| Figure 4a--c | Figure4a_CDA_Prices.png, etc. | cda.py, flow.py |
-| Figure 5a | Figure5a_Volume.png | new_plots.py |
-| Figure 5b | Figure5b_Surplus.png | new_plots.py |
-| Figure 6 | Figure6_Profit_CDF.png | new_plots.py |
-| Figure 7 | Figure7_Umax_CDF.png | flow_trader_period.py |
-| Figure 8 | Figure8_Cumulative_Volume.png | new_plots.py |
-| Figure 9 | Figure9_Price_Range_CDF.png | flow_trader_period.py |
+| Figure 4a--c | Figure4a_CDA_Prices.pdf, etc. | cda.py, flow.py |
+| Figure 5a | Figure5a_Volume.pdf | new_plots.py |
+| Figure 5b | Figure5b_Surplus.pdf | new_plots.py |
+| Figure 6 | Figure6_Profit_CDF.pdf | new_plots.py |
+| Figure 7 | Figure7_Umax_CDF.pdf | flow_trader_period.py |
+| Figure 8 | Figure8_Cumulative_Volume.pdf | new_plots.py |
+| Figure 9 | Figure9_Price_Range_CDF.pdf | flow_trader_period.py |
 
 ### Supplemental Appendix
 
-Output files follow the naming pattern `TableSN_Description.tex` and `FigureSN_Description.png`, saved to `output/tables/` and `output/figures/` respectively.
+Output files follow the naming pattern `TableSN_Description.tex` and `FigureSN_Description.pdf`, saved to `output/tables/` and `output/figures/` respectively.
 
 | Figure/Table | Program | Note |
 |---|---|---|
