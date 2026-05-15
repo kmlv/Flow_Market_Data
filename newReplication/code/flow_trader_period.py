@@ -678,9 +678,11 @@ print(spearman_6)
 # Export Table S1: Spearman Correlations as LaTeX
 _categories = sorted(spearman_1.index.tolist())
 _vars = ['Excess Profit', 'Price Markup', r'$U_{max}$ (\%)', 'Price Range']
+_colspec = 'l' + 'c' * len(_categories)
 _s1_tex = r"""\begin{table}[!htbp] \centering
 \caption{Spearman Rank Correlations Between Behavioral Variables (Flow Traders)}
-\begin{tabular}{@{\extracolsep{5pt}}lcccccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{\extracolsep{5pt}}""" + _colspec + r"""}
 \\[-1.8ex]\hline
 \hline \\[-1.8ex]
 """
@@ -726,7 +728,7 @@ _s1_tex += r' \\' + '\n'
 
 _s1_tex += r"""\hline
 \hline \\[-1.8ex]
-\end{tabular}
+\end{tabular}}
 \end{table}"""
 
 with open(os.path.join(tables_dir, 'TableS1_Spearman_Correlations.tex'), 'w') as f:

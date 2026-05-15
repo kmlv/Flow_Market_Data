@@ -66,18 +66,15 @@ def copy_robustness_tables(interval):
     """Copy robustness regression/summary tables with supplemental naming."""
     tables_dir = os.path.join(OUTPUT_DIR, "tables")
 
-    # Mapping: source filename (from 5s default) -> supplemental table name
+    # Mapping: source filename (from interval-specific run) -> supplemental table name.
+    # S3/S4/S6/S7 are written directly by the interval-specific data.py run.
     if interval == 10:
         renames = {
             "Table2_Summary_Market_T11-T20.tex": "TableS2_Summary_Market_10s.tex",
-            "Table4_Regression_Price_Volatility.tex": "TableS3_Regression_Price_10s.tex",
-            "Table6_Regression_Efficiency.tex": "TableS4_Regression_Efficiency_10s.tex",
         }
     elif interval == 2:
         renames = {
             "Table2_Summary_Market_T11-T20.tex": "TableS5_Summary_Market_2s.tex",
-            "Table4_Regression_Price_Volatility.tex": "TableS6_Regression_Price_2s.tex",
-            "Table6_Regression_Efficiency.tex": "TableS7_Regression_Efficiency_2s.tex",
         }
     else:
         return
@@ -112,49 +109,49 @@ def generate_verification_tex():
     supp_tables = [
         ("Table S1: Spearman Correlations", "TableS1_Spearman_Correlations.tex"),
         ("Table S2: Market Performance (10s intervals)", "TableS2_Summary_Market_10s.tex"),
-        ("Table S3: Price Volatility Regression (10s)", "TableS3_Regression_Price_10s.tex"),
-        ("Table S4: Efficiency Regression (10s)", "TableS4_Regression_Efficiency_10s.tex"),
+        ("Table S3: Price Volatility Regression (10s)", "TableS3_Regression_Price_Volatility_10s.tex"),
+        ("Table S4: Price Deviation Regression (10s)", "TableS4_Regression_Efficiency_10s.tex"),
         ("Table S5: Market Performance (2s intervals)", "TableS5_Summary_Market_2s.tex"),
-        ("Table S6: Price Volatility Regression (2s)", "TableS6_Regression_Price_2s.tex"),
-        ("Table S7: Efficiency Regression (2s)", "TableS7_Regression_Efficiency_2s.tex"),
+        ("Table S6: Price Volatility Regression (2s)", "TableS6_Regression_Price_Volatility_2s.tex"),
+        ("Table S7: Price Deviation Regression (2s)", "TableS7_Regression_Efficiency_2s.tex"),
         ("Table S8: Unweighted Price Statistics", "TableS8_Unweighted_Prices.tex"),
     ]
 
     main_figures = [
-        ("Figure 4a: CDA Transaction Prices", "Figure4a_CDA_Prices.png"),
-        ("Figure 4b: Flow30 Transaction Prices", "Figure4b_Flow30_Prices.png"),
-        ("Figure 4c: Flow60 Transaction Prices", "Figure4c_Flow60_Prices.png"),
-        ("Figure 5a: Trade Volume vs.\\ Period", "Figure5a_Volume.png"),
-        ("Figure 5b: Realized Surplus vs.\\ Period", "Figure5b_Surplus.png"),
-        ("Figure 6: Profit Distribution (CDF)", "Figure6_Profit_CDF.png"),
-        ("Figure 7: CDF of $U_{max}$", "Figure7_Umax_CDF.png"),
-        ("Figure 8: Cumulative Executed Volume", "Figure8_Cumulative_Volume.png"),
-        ("Figure 9: CDF of Price-Range Width", "Figure9_Price_Range_CDF.png"),
+        ("Figure 4a: CDA Transaction Prices", "Figure4a_CDA_Prices.pdf"),
+        ("Figure 4b: Flow30 Transaction Prices", "Figure4b_Flow30_Prices.pdf"),
+        ("Figure 4c: Flow60 Transaction Prices", "Figure4c_Flow60_Prices.pdf"),
+        ("Figure 5a: Trade Volume vs.\\ Period", "Figure5a_Volume.pdf"),
+        ("Figure 5b: Realized Surplus vs.\\ Period", "Figure5b_Surplus.pdf"),
+        ("Figure 6: Profit Distribution (CDF)", "Figure6_Profit_CDF.pdf"),
+        ("Figure 7: CDF of $U_{max}$", "Figure7_Umax_CDF.pdf"),
+        ("Figure 8: Cumulative Executed Volume", "Figure8_Cumulative_Volume.pdf"),
+        ("Figure 9: CDF of Price-Range Width", "Figure9_Price_Range_CDF.pdf"),
     ]
 
     supp_figures = [
-        ("Figure S1a: CDA Prices (All Groups)", "FigureS1a_CDA_Prices_All.png"),
-        ("Figure S1b: Flow30 Prices (All Groups)", "FigureS1b_Flow30_Prices_All.png"),
-        ("Figure S1c: Flow60 Prices (All Groups)", "FigureS1c_Flow60_Prices_All.png"),
-        ("Figure S2a: CDA Trade Volume", "FigureS2a_CDA_Volume.png"),
-        ("Figure S2b: CDA Realized Surplus", "FigureS2b_CDA_Surplus.png"),
-        ("Figure S2c: Flow30 Trade Volume", "FigureS2c_Flow30_Volume.png"),
-        ("Figure S2d: Flow30 Realized Surplus", "FigureS2d_Flow30_Surplus.png"),
-        ("Figure S2e: Flow60 Trade Volume", "FigureS2e_Flow60_Volume.png"),
-        ("Figure S2f: Flow60 Realized Surplus", "FigureS2f_Flow60_Surplus.png"),
-        ("Figure S3: Profit Distribution (Last 10 Periods)", "FigureS3_Profit_CDF_Last10.png"),
-        ("Figure S4a: CDA Contract Execution", "FigureS4a_CDA_Contract.png"),
-        ("Figure S4b: Flow30 Contract Execution", "FigureS4b_Flow30_Contract.png"),
-        ("Figure S4c: Flow60 Contract Execution", "FigureS4c_Flow60_Contract.png"),
-        ("Figure S5a: CDA Execution Pace", "FigureS5a_CDA_Rate.png"),
-        ("Figure S5b: Flow30 Execution Pace", "FigureS5b_Flow30_Rate.png"),
-        ("Figure S5c: Flow60 Execution Pace", "FigureS5c_Flow60_Rate.png"),
-        ("Figure S6: Price Markup CDF", "FigureS6_Price_Markup_CDF.png"),
-        ("Figure S7: $U_{max}$ CDF (Early vs.\\ Late)", "FigureS7_Umax_CDF_Periods.png"),
-        ("Figure S8: Speed Limit Usage vs.\\ Surplus", "FigureS8_Speed_vs_Surplus.png"),
-        ("Figure S9a: Price-Range vs.\\ Excess Profit", "FigureS9a_PriceRange_vs_Profit.png"),
-        ("Figure S9b: $U_{max}$ vs.\\ Excess Profit", "FigureS9b_Umax_vs_Profit.png"),
-        ("Figure S9c: Price Markup vs.\\ Excess Profit", "FigureS9c_Markup_vs_Profit.png"),
+        ("Figure S1a: CDA Prices (All Groups)", "FigureS1a_CDA_Prices_All.pdf"),
+        ("Figure S1b: Flow30 Prices (All Groups)", "FigureS1b_Flow30_Prices_All.pdf"),
+        ("Figure S1c: Flow60 Prices (All Groups)", "FigureS1c_Flow60_Prices_All.pdf"),
+        ("Figure S2a: CDA Trade Volume", "FigureS2a_CDA_Volume.pdf"),
+        ("Figure S2b: CDA Realized Surplus", "FigureS2b_CDA_Surplus.pdf"),
+        ("Figure S2c: Flow30 Trade Volume", "FigureS2c_Flow30_Volume.pdf"),
+        ("Figure S2d: Flow30 Realized Surplus", "FigureS2d_Flow30_Surplus.pdf"),
+        ("Figure S2e: Flow60 Trade Volume", "FigureS2e_Flow60_Volume.pdf"),
+        ("Figure S2f: Flow60 Realized Surplus", "FigureS2f_Flow60_Surplus.pdf"),
+        ("Figure S3: Profit Distribution (Last 10 Periods)", "FigureS3_Profit_CDF_Last10.pdf"),
+        ("Figure S4a: CDA Contract Execution", "FigureS4a_CDA_Contract.pdf"),
+        ("Figure S4b: Flow30 Contract Execution", "FigureS4b_Flow30_Contract.pdf"),
+        ("Figure S4c: Flow60 Contract Execution", "FigureS4c_Flow60_Contract.pdf"),
+        ("Figure S5a: CDA Execution Pace", "FigureS5a_CDA_Rate.pdf"),
+        ("Figure S5b: Flow30 Execution Pace", "FigureS5b_Flow30_Rate.pdf"),
+        ("Figure S5c: Flow60 Execution Pace", "FigureS5c_Flow60_Rate.pdf"),
+        ("Figure S6: Price Markup CDF", "FigureS6_Price_Markup_CDF.pdf"),
+        ("Figure S7: $U_{max}$ CDF (Early vs.\\ Late)", "FigureS7_Umax_CDF_Periods.pdf"),
+        ("Figure S8: Speed Limit Usage vs.\\ Surplus", "FigureS8_Speed_vs_Surplus.pdf"),
+        ("Figure S9a: Price-Range vs.\\ Excess Profit", "FigureS9a_PriceRange_vs_Profit.pdf"),
+        ("Figure S9b: $U_{max}$ vs.\\ Excess Profit", "FigureS9b_Umax_vs_Profit.pdf"),
+        ("Figure S9c: Price Markup vs.\\ Excess Profit", "FigureS9c_Markup_vs_Profit.pdf"),
     ]
 
     tex = r"""\documentclass[11pt]{article}
@@ -164,6 +161,8 @@ def generate_verification_tex():
 \usepackage{longtable}
 \usepackage{float}
 \usepackage{amsmath}
+\usepackage{threeparttable}
+\usepackage[strings]{underscore}
 \usepackage[colorlinks=true]{hyperref}
 
 \title{Verification Document\\

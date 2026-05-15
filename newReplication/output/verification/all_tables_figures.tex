@@ -1,0 +1,319 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{threeparttable}
+\usepackage[strings]{underscore}
+\usepackage[colorlinks=true]{hyperref}
+
+\title{Verification Document\\
+\large A Laboratory Test of Flow Trading\\
+Friedman, Li, L\'{o}pez Vargas}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+%% ============================================================
+\section{Main Paper Tables}
+%% ============================================================
+
+\subsection{Table 1: Summary Statistics --- Traders' Behavior (T11--T20)}
+\input{../tables/Table1_Summary_Traders_T11-T20.tex}
+\clearpage
+
+\subsection{Table 1: Summary Statistics --- Traders' Behavior (T1--T20)}
+\input{../tables/Table1_Summary_Traders_T1-T20.tex}
+\clearpage
+
+\subsection{Table 2: Summary Statistics --- Market Performance (T11--T20)}
+\input{../tables/Table2_Summary_Market_T11-T20.tex}
+\clearpage
+
+\subsection{Table 2: Summary Statistics --- Market Performance (T1--T20)}
+\input{../tables/Table2_Summary_Market_T1-T20.tex}
+\clearpage
+
+\subsection{Table 3: Regression --- Trader Behavior Metrics}
+\input{../tables/Table3_Regression_Trader_Behavior.tex}
+\clearpage
+
+\subsection{Table 4: Regression --- Price Volatility and Liquidity}
+\input{../tables/Table4_Regression_Price_Volatility.tex}
+\clearpage
+
+\subsection{Table 5: Regression --- Volume}
+\input{../tables/Table5_Regression_Volume.tex}
+\clearpage
+
+\subsection{Table 6: Regression --- Efficiency and Buyer-Seller Disparity}
+\input{../tables/Table6_Regression_Efficiency.tex}
+\clearpage
+
+%% ============================================================
+\section{Main Paper Figures}
+%% ============================================================
+
+\subsection{Figure 4a: CDA Transaction Prices}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure4a_CDA_Prices.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 4b: Flow30 Transaction Prices}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure4b_Flow30_Prices.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 4c: Flow60 Transaction Prices}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure4c_Flow60_Prices.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 5a: Trade Volume vs.\ Period}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure5a_Volume.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 5b: Realized Surplus vs.\ Period}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure5b_Surplus.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 6: Profit Distribution (CDF)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure6_Profit_CDF.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 7: CDF of $U_{max}$}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure7_Umax_CDF.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 8: Cumulative Executed Volume}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure8_Cumulative_Volume.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure 9: CDF of Price-Range Width}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/Figure9_Price_Range_CDF.pdf}
+\end{figure}
+\clearpage
+
+%% ============================================================
+\section{Supplemental Appendix Tables}
+%% ============================================================
+
+\subsection{Table S1: Spearman Correlations}
+\input{../tables/TableS1_Spearman_Correlations.tex}
+\clearpage
+
+\subsection{Table S2: Market Performance (10s intervals)}
+\input{../tables/TableS2_Summary_Market_10s.tex}
+\clearpage
+
+\subsection{Table S3: Price Volatility Regression (10s)}
+\input{../tables/TableS3_Regression_Price_Volatility_10s.tex}
+\clearpage
+
+\subsection{Table S4: Price Deviation Regression (10s)}
+\input{../tables/TableS4_Regression_Efficiency_10s.tex}
+\clearpage
+
+\subsection{Table S5: Market Performance (2s intervals)}
+\input{../tables/TableS5_Summary_Market_2s.tex}
+\clearpage
+
+\subsection{Table S6: Price Volatility Regression (2s)}
+\input{../tables/TableS6_Regression_Price_Volatility_2s.tex}
+\clearpage
+
+\subsection{Table S7: Price Deviation Regression (2s)}
+\input{../tables/TableS7_Regression_Efficiency_2s.tex}
+\clearpage
+
+\subsection{Table S8: Unweighted Price Statistics}
+\input{../tables/TableS8_Unweighted_Prices.tex}
+\clearpage
+
+%% ============================================================
+\section{Supplemental Appendix Figures}
+%% ============================================================
+
+\subsection{Figure S1a: CDA Prices (All Groups)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS1a_CDA_Prices_All.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S1b: Flow30 Prices (All Groups)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS1b_Flow30_Prices_All.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S1c: Flow60 Prices (All Groups)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS1c_Flow60_Prices_All.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S2a: CDA Trade Volume}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS2a_CDA_Volume.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S2b: CDA Realized Surplus}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS2b_CDA_Surplus.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S2c: Flow30 Trade Volume}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS2c_Flow30_Volume.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S2d: Flow30 Realized Surplus}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS2d_Flow30_Surplus.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S2e: Flow60 Trade Volume}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS2e_Flow60_Volume.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S2f: Flow60 Realized Surplus}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS2f_Flow60_Surplus.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S3: Profit Distribution (Last 10 Periods)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS3_Profit_CDF_Last10.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S4a: CDA Contract Execution}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS4a_CDA_Contract.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S4b: Flow30 Contract Execution}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS4b_Flow30_Contract.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S4c: Flow60 Contract Execution}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS4c_Flow60_Contract.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S5a: CDA Execution Pace}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS5a_CDA_Rate.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S5b: Flow30 Execution Pace}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS5b_Flow30_Rate.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S5c: Flow60 Execution Pace}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS5c_Flow60_Rate.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S6: Price Markup CDF}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS6_Price_Markup_CDF.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S7: $U_{max}$ CDF (Early vs.\ Late)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS7_Umax_CDF_Periods.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S8: Speed Limit Usage vs.\ Surplus}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS8_Speed_vs_Surplus.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S9a: Price-Range vs.\ Excess Profit}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS9a_PriceRange_vs_Profit.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S9b: $U_{max}$ vs.\ Excess Profit}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS9b_Umax_vs_Profit.pdf}
+\end{figure}
+\clearpage
+
+\subsection{Figure S9c: Price Markup vs.\ Excess Profit}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../figures/FigureS9c_Markup_vs_Profit.pdf}
+\end{figure}
+\clearpage
+
+\end{document}

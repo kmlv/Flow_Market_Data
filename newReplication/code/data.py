@@ -139,7 +139,7 @@ regress_data_profits = regress_data_direction.groupby(['format', 'period', 'grou
     'overall_order_rate_initial': x['order_rate_initial'].mean(),
     'max_quantity/rate_orders_buy': x['max_quantity/rate_orders_buy'].mean(), 
     'max_quantity/rate_orders_sell': x['max_quantity/rate_orders_sell'].mean(), 
-    '%no_trans': x['no_trans'].mean() / round_length, 
+    '%no_trans': 100 * x['no_trans'].mean() / round_length,
 })).reset_index()
 regress_data_profits['max_quantity/rate_orders'] = regress_data_profits['max_quantity/rate_orders_buy'] + regress_data_profits['max_quantity/rate_orders_sell']
 regress_buy = regress_data_direction[regress_data_direction['direction'] == 'buy'][['format', 'period', 'group', 'cash', 'ce_profit', 'order_num', 'order_price_low', 'order_price_high', 'order_quantity', 'order_rate', 'order_price_low_initial', 'order_price_high_initial', 'order_quantity_initial', 'order_rate_initial']]
@@ -324,7 +324,7 @@ if price_interval_size == 5:
 
 
 summary_market_all20 = [
-    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'FLOw_H', 'CDA', 'Flow30', 'Flow60', ], 
+    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'Flow60', ],
     [None, 'T1 - T20', 'T1 - T20', 'T1 - T20', 'T1 - T10', 'T1 - T10', 'T1 - T10', 'T11 - T20', 'T11 - T20', 'T11 - T20', ], 
     ['Clearing Price', 
         regress_data_interval[(regress_data_interval['format'] == 'CDA')]['weighted_price'].mean(),
@@ -439,7 +439,7 @@ summary_market_all20 = [
         None, '({})'.format(statistics.stdev(clearing_rate_flow30_first10)), '({})'.format(statistics.stdev(clearing_rate_flow60_first10)),
         None, '({})'.format(statistics.stdev(clearing_rate_flow30_last10)), '({})'.format(statistics.stdev(clearing_rate_flow60_last10)),
         ], 
-    ['Time with no FLOW Trans (%)',
+    ['Time with no Flow (%)',
         None,
         regress_data_period[regress_data_period['format'] == 'Flow30']['%no_trans'].mean(),
         regress_data_period[regress_data_period['format'] == 'Flow60']['%no_trans'].mean(),
@@ -566,13 +566,13 @@ summary_market_short = [
         ],
     ['Clearing Rate', 
         None, statistics.mean(clearing_rate_flow30_all20), statistics.mean(clearing_rate_flow60_all20),
-        None, statistics.mean(clearing_rate_flow30_last10), statistics.mean(clearing_rate_flow30_last10),
+        None, statistics.mean(clearing_rate_flow30_last10), statistics.mean(clearing_rate_flow60_last10),
        ], 
     ['Std. Dev.', 
         None, '({})'.format(statistics.stdev(clearing_rate_flow30_all20)), '({})'.format(statistics.stdev(clearing_rate_flow60_all20)),
         None, '({})'.format(statistics.stdev(clearing_rate_flow30_last10)), '({})'.format(statistics.stdev(clearing_rate_flow60_last10)),
         ], 
-    ['Time with no FLOW Trans (%)',
+    ['Time with no Flow (%)',
         None,
         regress_data_period[regress_data_period['format'] == 'Flow30']['%no_trans'].mean(),
         regress_data_period[regress_data_period['format'] == 'Flow60']['%no_trans'].mean(),
@@ -607,7 +607,7 @@ summary_market_short = [
 ]
 
 summary_trader_all20 = [
-    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'FLOw_H', 'CDA', 'Flow30', 'Flow60', ], 
+    [None, 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'Flow60', 'CDA', 'Flow30', 'Flow60', ],
     [None, 'T1 - T20', 'T1 - T20', 'T1 - T20', 'T1 - T10', 'T1 - T10', 'T1 - T10', 'T11 - T20', 'T11 - T20', 'T11 - T20', ], 
     ['Number of Orders', 
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_num'].mean(), 
@@ -642,7 +642,7 @@ summary_trader_all20 = [
         regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_num'].mean(),
     ], 
-    ['Quant. per Order', 
+    ['Shares per Order',
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_quantity'].mean(), 
         regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_quantity'].mean(),
         regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_quantity'].mean(),
@@ -741,7 +741,7 @@ summary_trader_all20 = [
         regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_rate'].mean(),
         regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_rate'].mean(),
     ],
-    ['%Order at Max Quantity', 
+    ['Orders at Max Quantity',
         regress_data_period[regress_data_period['format'] == 'CDA']['%max_quantity/rate_orders'].mean(), None, None, 
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['period'] <= (num_periods - prac_periods) // 2)]['%max_quantity/rate_orders'].mean(), None, None,
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['%max_quantity/rate_orders'].mean(), None, None, 
@@ -756,7 +756,7 @@ summary_trader_all20 = [
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['period'] <= (num_periods - prac_periods) // 2)]['%max_quantity/rate_orders_buy'].mean(), None, None,
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['%max_quantity/rate_orders_buy'].mean(), None, None,
     ],
-    ['%Order at Max Rate', 
+    ['Orders at Speed Limit',
         None, 
         regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders'].mean(),
         regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders'].mean(),
@@ -818,7 +818,7 @@ summary_trader_short = [
         regress_data_period[(regress_data_period['format'] == 'Flow30') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_num'].mean(),
         regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_num'].mean(),
     ], 
-    ['Quant. per Order', 
+    ['Shares per Order',
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_quantity'].mean(), 
         regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_quantity'].mean(),
         regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_quantity'].mean(),
@@ -843,7 +843,7 @@ summary_trader_short = [
         regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_quantity'].mean(),
     ], 
 
-    ['Quant. per Order (early)', 
+    ['Shares per Order (early)',
         regress_data_period[regress_data_period['format'] == 'CDA']['overall_order_quantity_initial'].mean(), 
         regress_data_period[regress_data_period['format'] == 'Flow30']['overall_order_quantity_initial'].mean(),
         regress_data_period[regress_data_period['format'] == 'Flow60']['overall_order_quantity_initial'].mean(),
@@ -969,7 +969,7 @@ summary_trader_short = [
         regress_data_period[(regress_data_period['format'] == 'Flow60') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['buyer_order_rate_initial'].mean(),
     ],
 
-    ['%Order at Max Quantity', 
+    ['Orders at Max Quantity',
         regress_data_period[regress_data_period['format'] == 'CDA']['%max_quantity/rate_orders'].mean(), None, None, 
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['%max_quantity/rate_orders'].mean(), None, None, 
     ],
@@ -981,7 +981,7 @@ summary_trader_short = [
         regress_data_period[regress_data_period['format'] == 'CDA']['%max_quantity/rate_orders_buy'].mean(), None, None,
         regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]['%max_quantity/rate_orders_buy'].mean(), None, None,
     ],
-    ['%Order at Max Rate', 
+    ['Orders at Speed Limit',
         None, 
         regress_data_period[regress_data_period['format'] == 'Flow30']['%max_quantity/rate_orders'].mean(),
         regress_data_period[regress_data_period['format'] == 'Flow60']['%max_quantity/rate_orders'].mean(),
@@ -1268,6 +1268,82 @@ def _fmt_pval(w):
         return '$<$ 0.001'
     return '{:.3f}'.format(p)
 
+
+def _fmt_pval_plain(w):
+    return '{:.3f}'.format(float(w.pvalue))
+
+
+def _stars(p):
+    if p < 0.01:
+        return '^{***}'
+    if p < 0.05:
+        return '^{**}'
+    if p < 0.1:
+        return '^{*}'
+    return '^{}'
+
+
+def _fmt_coef(res, var):
+    value = res.params[var]
+    if abs(value) < 0.0005:
+        value = 0
+    return '{:.3f}$'.format(value) + _stars(res.pvalues[var]) + '$'
+
+
+def _fmt_se(res, var):
+    return '({:.3f})'.format(res.bse[var])
+
+
+def _render_price_deviation_table(include_wald=False):
+    rows = [
+        ('Intercept', 'Intercept'),
+        ('Flow30', 'format[T.Flow30]'),
+        ('Flow60', 'format[T.Flow60]'),
+        ('Period number', 'period'),
+        ('Interval number', 'interval'),
+    ]
+
+    table = r"""\begin{table}[!htbp] \centering
+\caption{Regression: Price Deviation from Competitive Equilibrium}
+\resizebox{\textwidth}{!}{
+\begin{threeparttable}
+\begin{tabular}{@{\extracolsep{5pt}}lcc}
+\toprule
+& \multicolumn{2}{c}{$\lvert P_\tau - P_{\text{CE}}\rvert$} \\
+\cmidrule{2-3}
+& T1-T20 & T11-T20 \\
+& (1) & (2) \\
+\midrule
+"""
+    for label, var in rows:
+        table += ' {} & {} & {} \\\\\n'.format(label, _fmt_coef(price_dev_res, var), _fmt_coef(price_dev_last10_res, var))
+        table += '& {} & {} \\\\\n'.format(_fmt_se(price_dev_res, var), _fmt_se(price_dev_last10_res, var))
+
+    table += r"""\midrule
+ Observations & {} & {} \\
+ Adjusted $R^2$ & {:.3f} & {:.3f} \\
+\midrule
+CDA avg. & {:.2f} & {:.2f} \\
+""".format(
+        int(price_dev_res.nobs),
+        int(price_dev_last10_res.nobs),
+        price_dev_res.rsquared_adj,
+        price_dev_last10_res.rsquared_adj,
+        _cda_int_all['price_deviation'].mean(),
+        _cda_int_last['price_deviation'].mean(),
+    )
+    if include_wald:
+        table += 'Flow30 = Flow60? & {} & {} \\\\\n'.format(
+            _fmt_pval_plain(price_dev_wald),
+            _fmt_pval_plain(price_dev_last10_wald),
+        )
+
+    table += r"""\bottomrule
+\end{tabular}
+\end{threeparttable}}
+\end{table}"""
+    return table
+
 # Helper to compute CDA average of dependent variable
 _cda_all = regress_data_period[regress_data_period['format'] == 'CDA']
 _cda_last = regress_data_period[(regress_data_period['format'] == 'CDA') & (regress_data_period['period'] > (num_periods - prac_periods) // 2)]
@@ -1381,14 +1457,14 @@ if price_interval_size in (10, 2):
         _s_eff_name = 'TableS7_Regression_Efficiency_2s.tex'
         _s_label = '2-second'
 
-    # Save regression tables (same format as Tables 4 and 6)
+    # Save regression tables
     print(f'Saving {_s_label} Price Volatility Regression')
     with open(os.path.join(tables_dir, _s_price_name), 'w') as f:
         f.write(stargazer_price.render_latex())
 
-    print(f'Saving {_s_label} Efficiency Regression')
+    print(f'Saving {_s_label} Price Deviation Regression')
     with open(os.path.join(tables_dir, _s_eff_name), 'w') as f:
-        f.write(stargazer_efficiency.render_latex())
+        f.write(_render_price_deviation_table(include_wald=(price_interval_size == 2)))
 
     # Build S summary table (subset of market summary: price stats + info efficiency)
     # Extract relevant rows from summary_market_short (indices 2-6 = price stats, 16 = info effic.)
